@@ -61,8 +61,9 @@ sess.run(init)
 
 for i in range(steps):
     sess.run(optimizer, {x:x_ds, y:y_ds})
-    # print("W: %f" % sess.run(W))
-    # print("b: %f" % sess.run(b))
+    print("After %d iterations:" % int(i+1))
+    print("W: %s" % sess.run(W))
+    print("b: %s" % sess.run(b))
 
 ### Results ###
 # curr_W = sess.run(W)
