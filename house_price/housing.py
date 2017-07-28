@@ -31,7 +31,7 @@ sess.run(init)
 
 for i in range(steps):
     sess.run(train, {x:xs, y:ys})
-    print("After %d iterationi:" % i)
+    print("After %d iterations:" % i)
     print("W: %f" % sess.run(W))
     print("b: %f" % sess.run(b))
 
