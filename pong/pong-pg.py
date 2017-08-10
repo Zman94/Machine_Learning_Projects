@@ -8,7 +8,7 @@ batch_size = 10 # how many episodes before update
 learning_rate = 1e-4
 gamma = .99 # discount factor
 decay_rate = .99 # decay factor
-resume = False # resume from previous checkpoint
+resume = True # resume from previous checkpoint
 render = False
 
 # model initialization
@@ -129,6 +129,7 @@ while True:
         print('resetting env. episode reward total was %f. running mean: %f' % (reward_sum, running_reward))
         if episode_number % 100 == 0:
             pickle.dump(model, open('save.p', 'wb'))
+        reward_sum = 0
         observation = env.reset()
         prev_x = None
 
