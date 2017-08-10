@@ -6,6 +6,7 @@ import random
 
 n = 4
 classes = 3
+max_steps = 2000
 
 ### Import Data ###
 type_to_number = {'Iris-setosa':[1,0,0], 'Iris-versicolor':[0,1,0], 'Iris-virginica':[0,0,1]}
@@ -80,6 +81,26 @@ optimizer = tf.train.GradientDescentOptimizer(learning_rate)
 global_step = tf.variable(0, name='global_step', trainable=False)
 train_op = optimizer.minimize(loss, global_step=global_step)
 
+### Run Training ###
+with tf.Graph().as_default():
+    sess = tf.Session()
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    data_cnt = 0
+    for step in range(max_steps):
+        start_time = time.time()
+        data_feed = x_ds[data_cnt:data_cnt+10]
+        label_feed = y_ds[data_cnt:data_cnt+10]
+        data_cnt+=10
+
+        feed_dict = {
+            images_placeholder: data_feed,
+            labels_placeholder: labels_feed,
+        }
+        _, loss_value = sess.run([train_op, loss], feed_dict=feed_dict)
+        duration = time.time() - start_time
+        if step % 100 == 0:
+            print('Setp %d: loss = %.2f (%.3f sec)' % (step, loss_value, duration))
 ### Evaluate ###
 
 
