@@ -1,3 +1,4 @@
+import tensorflow as tf
 import gym
 from gym import wrappers
 env = gym.make('LunarLander-v2')
@@ -16,29 +17,60 @@ render        = True
 min_reward    = -200
 max_reward    = 200
 
+STATE_SIZE  = 8
+ACTION_SIZE = 4
+
 ### MODEL INIT ###
 # print(env.observation_space)
 # print(env.action_space)
-STATE_SIZE  = 8
-ACTION_SIZE = 4
 state = tf.placeholder(shape=[None, STATE_SIZE], dtype=tf.float32)
-hidden1 = tf.slim.fully_connected(state, H1, activation_fn=tf.nn.softmax)
-hidden2 = tf.slim.fully_connected(H1, H2, activation_fn=tf.nn.softmax)
-output = tf.slim.fully_connected(H2, ACTION_SIZE, activation_fn=tf.nn.softmax)
+output = tf.placeholder(shape=[None, ACTION_SIZE], dtype=tf.float32)
 
-chosen_action = tf.argmax(self.output, 1)
+batch_size = 10
+learning_rate = 1e-4
+
+weights = {
+    'hidden1' : tf.Variable(tf.random_normal([STATE_SIZE, H1])),
+    'hidden2' : tf.Variable(tf.random_normal([H1, H2])),
+    'output'  : tf.Variable(tf.random_normal([H2, ACTION_SIZE]))
+}
+
+biases = {
+    'hidden1' : tf.Variable(tf.random_normal([H1])),
+    'hidden2' : tf.Variable(tf.random_normal([H2])),
+    'output'  : tf.Variable(tf.random_normal([ACTION_SIZE]))
+}
+
+hidden_layer1 = tf.nn.relu(tf.add(tf.matmul(state, weights['hidden1']), biases['hidden1']))
+hidden_layer2 = tf.nn.relu(tf.add(tf.matmul(hidden_layer1, weights['hidden2']), biases['hidden2']))
+output_layer  = tf.matmul(hidden_layer2, weights['output']) + biases['output']
+
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=output_layer, labels=output))
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+
+chosen_action = tf.argmax(output, 1)
 
 ### Training Procedure ###
 reward_holder = tf.placeholder(shape=[None], dtype=tf.float32)
 action_holder = tf.placeholder(shape=[None], dtype=tf.int32)
 
-observation = env.reset()
-for _ in range(1000):
-    env.render()
-    # print(observation)
-    action = env.action_space.sample()
-    observation, reward, done, info = env.step(action)
+init = tf.global_variables_initializer()
+with tf.Session() as sess:
+    sess.run(init)
 
-    if done:
-        observation = env.reset()
-        break
+    observation = env.reset()
+    running_reward = 0
+    ep_history = []
+    while True:
+        if render:
+            env.render()
+
+        action = sess.run(chosen_action, feed_dict={state:[observation]})
+
+        s1, r, done, _ = env.step(a_dist)
+        ep_history.append(observation, action, r, s1)
+        running_reward += r
+
+        if done:
+            observation = env.reset()
+            break
