@@ -1,5 +1,9 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
+import tensorflow.contrib.slim as slim
 import gym
+import numpy as np
 from gym import wrappers
 env = gym.make('LunarLander-v2')
 # env = wrappers.Monitor(env, './lunar_lander-experiment-1', force=True)
@@ -31,21 +35,21 @@ learning_rate = 1e-4
 
 weights = {
     'hidden1' : tf.Variable(tf.random_normal([STATE_SIZE, H1])),
-    'hidden2' : tf.Variable(tf.random_normal([H1, H2])),
-    'output'  : tf.Variable(tf.random_normal([H2, ACTION_SIZE]))
+    # 'hidden2' : tf.Variable(tf.random_normal([H1, H2])),
+    'output'  : tf.Variable(tf.random_normal([H1, ACTION_SIZE]))
 }
 
 biases = {
     'hidden1' : tf.Variable(tf.random_normal([H1])),
-    'hidden2' : tf.Variable(tf.random_normal([H2])),
+    # 'hidden2' : tf.Variable(tf.random_normal([H2])),
     'output'  : tf.Variable(tf.random_normal([ACTION_SIZE]))
 }
 
 hidden_layer1 = tf.nn.relu(tf.add(tf.matmul(state, weights['hidden1']), biases['hidden1']))
-hidden_layer2 = tf.nn.relu(tf.add(tf.matmul(hidden_layer1, weights['hidden2']), biases['hidden2']))
-output_layer  = tf.matmul(hidden_layer2, weights['output']) + biases['output']
+# hidden_layer2 = tf.nn.relu(tf.add(tf.matmul(hidden_layer1, weights['hidden2']), biases['hidden2']))
+output_layer  = tf.matmul(hidden_layer1, weights['output']) + biases['output']
 
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=output_layer, labels=output))
+cost = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(logits=output_layer, labels=output))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
 chosen_action = tf.argmax(output, 1)
@@ -61,9 +65,12 @@ with tf.Session() as sess:
     observation = env.reset()
     running_reward = 0
     ep_history = []
+    gradBuffer = sess.run(tf.trainable_variables())
     while True:
         if render:
             env.render()
+        print(observation.shape)
+        print(state)
 
         action = sess.run(chosen_action, feed_dict={state:[observation]})
 
