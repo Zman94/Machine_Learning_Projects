@@ -17,12 +17,23 @@ gamma         = .99
 decay_rate    = .99
 resume        = True
 render        = True
+score_req     = 50
 
 min_reward    = -200
 max_reward    = 200
 
 STATE_SIZE  = 8
 ACTION_SIZE = 4
+
+def initial_population():
+    training_data = []
+    scores = []
+    accepted_scores = []
+
+
+
+
+
 
 ### MODEL INIT ###
 # print(env.observation_space)
